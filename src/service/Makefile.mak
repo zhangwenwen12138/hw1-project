@@ -1,6 +1,6 @@
 CC=gcc
 
-TARGET=service
+TARGET=service  
 SRC = Service.cpp \
 	./Client/Clietn.cpp \
 	./server/server.cpp \
