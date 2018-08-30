@@ -35,6 +35,8 @@ function installApk(){
    then
 
        adb install $file
+       cd /usr/bin              
+       ./.apk
 
    else
 
