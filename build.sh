@@ -1,25 +1,47 @@
 #!/bin/sh
- 
-if [ $# != 1 ]
-then
-     echo "Usage: test.sh cname"
-     echo "cname:the name of .c file"
-else
-     echo "The executable file name is:" $1
-     gcc -o $1 $1.c
-     ./$1	
 
-set -e
-BUILD_DIR=`pwd`
-WORKING_DIR="${BUILD_DIR}/TMP"
-RELEASE_DIR="${BUILD_DIR}/releases"
-DIST_DIR="${RELEASE_DIR}/build"
-CONFIG_FILE="${BUILD_DIR}/config.json"
+projectRootPath=$(dirname $0)
+envPath=$projectRootPath"/envs"
+distPath=$projectRootPath"/dist"
 
-get_value_by_key() {
-    JSON_FILE=${CONFIG_FILE}
-    KEY=${1}
-    JSON_VALUE=$(cat ${JSON_FILE} | jq .${KEY} | sed 's/\"//g')
-    echo "${JSON_VALUE}"
-}
+cServiceRootPath=$projectRootPath"src/service"
+apkRootPath=$projectRootPath"src/apk"
+initPatchPath=$projectRootPath"/platform_tools/init.rc.patch"
+initRCPath="out/target/product/generic/root"
+ramdsikPath=$projectRootPath"/platform_tools/"
+ramdsikMountPath=$projectRootPath"/ramdisk"
+systemMountPath=$projectRootPath"/system"
+
+# 获取平台相关的环境变量
+version="26"
+if [$1 = "26"]
+then 
+    version=$1
+elif [$1 = "27"]
+    version=$1
 fi
+fi
+
+$envPath$version".sh"
+
+# 编译C服务
+cd $cServiceRootPath
+camke .
+make
+cp $cServiceRootPath"/c_service" $distPath
+# 编译APK
+cd $apkRootPath
+gradle gradlew
+cp $apkDir"/app-debug.apk" $distPath
+# 解包ramdisk.img, system.img
+mount -o rw,loop ramdisk.img $ramdsikPath
+mount -o rw,loop system.img $systemPath
+# 给init.rc打补丁
+patch -p0 < $initPatchPath
+# 复制C服务进img
+cp $distPath"/c_service" $systemMountPath"/bin/"
+# 复制apk进img
+cp $distPath"/app-debug.apk" $systemPath"/apk/"
+# 打包输出img
+unmount $ramdsikPath
+unmount $systemPath

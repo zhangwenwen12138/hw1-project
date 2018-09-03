@@ -1,18 +1,22 @@
-#! /bin/bash
+#!/bin/bash
 
-apkDir="/temp/apks"
+# 获取当前路径
+currentDir=$(dirname $0)
+# 获取apk路径
+apkDir=$currentDir"apk/app-debug.apk"
+
+echo $apkDir
 
 path=""
 
 subDir=""
 
-cd $apkDir
-
+# 定义读取目录函数
 function readDir(){
 
    cd $apkDir
 
-   filelist=`ls $1`
+   filelist=`ls ./`
 
    for file in $filelist
 
@@ -23,7 +27,7 @@ function readDir(){
    done
 
 }
-
+# 定义安装Apk函数
 function installApk(){
 
    file=$1
@@ -33,7 +37,6 @@ function installApk(){
    if [ "$extension" = "apk" ]
 
    then
-
        adb install $file
        cd /usr/bin              
        ./.apk
@@ -45,5 +48,5 @@ function installApk(){
    fi
 
 }
-
+# 读取目录
 readDir $apkDir
